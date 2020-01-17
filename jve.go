@@ -237,7 +237,7 @@ func (m *JVE) ToString() string {
     case Number:
         return fmt.Sprintf("%g", m.raw)
     case String:
-        return fmt.Sprintf(`"%s"`, m.raw)
+        return fmt.Sprintf("%q", m.raw)
     case Array, Object:
         out, err := JsonFormatObj(&m.raw, "")
         if err != nil {
