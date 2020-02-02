@@ -18,12 +18,15 @@ import (
 
 var Json = jsoniter.ConfigCompatibleWithStandardLibrary
 
+// 默认换行间隔
 var DefaultFormatIndent = "   "
 
+// 将json文本格式化
 func JsonFormat(s, indent string) (string, error) {
     return JsonFormatBytes(*(*[]byte)(unsafe.Pointer(&s)), indent)
 }
 
+// 将json字节数组格式化
 func JsonFormatBytes(bs []byte, indent string) (string, error) {
     if indent == "" {
         indent = DefaultFormatIndent
@@ -35,6 +38,7 @@ func JsonFormatBytes(bs []byte, indent string) (string, error) {
     return out.String(), err
 }
 
+// 将对象格式化为json字符串
 func JsonFormatObj(v interface{}, indent string) (string, error) {
     if indent == "" {
         indent = DefaultFormatIndent

@@ -11,13 +11,13 @@ package zjve2
 type Type int
 
 const (
-    Null    = Type(iota)
-    Error   // 错误类型
-    Boolean // 布尔
-    Number  // 数字
-    String  // 字符串
-    Array   // 数组
-    Object  // 对象
+    Null    = Type(iota) // 空类型
+    Error                // 错误类型
+    Boolean              // 布尔
+    Number               // 数字
+    String               // 字符串
+    Array                // 数组
+    Object               // 对象
 )
 
 func (m Type) String() string {

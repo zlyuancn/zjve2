@@ -214,6 +214,11 @@ func (m *JVE) Index(i int) *JVE {
     return m.makeJve(path, m.raw.([]interface{})[i])
 }
 
+// 判断是否存在某个路径
+func (m *JVE) Has(path string) bool {
+    return m.Get(path).Type() != Error
+}
+
 // -------  展示  ----------
 
 // 返回用于展示的字符串
