@@ -6,10 +6,10 @@
 
 `go get -u github.com/zlyuancn/zjve2`
 
-# 示例
-
 # 文档
 [godoc](https://godoc.org/github.com/zlyuancn/zjve2)
+
+# 示例
 
 ```
 jve := zjve2.LoadString(`
