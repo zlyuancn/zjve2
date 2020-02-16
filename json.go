@@ -11,7 +11,6 @@ package zjve2
 import (
     "bytes"
     "encoding/json"
-    "unsafe"
 
     "github.com/json-iterator/go"
 )
@@ -23,7 +22,7 @@ var DefaultFormatIndent = "   "
 
 // 将json文本格式化
 func JsonFormat(s, indent string) (string, error) {
-    return JsonFormatBytes(*(*[]byte)(unsafe.Pointer(&s)), indent)
+    return JsonFormatBytes([]byte(s), indent)
 }
 
 // 将json字节数组格式化

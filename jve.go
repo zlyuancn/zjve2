@@ -16,10 +16,11 @@ import (
     "os"
     "strconv"
     "strings"
-    "unsafe"
 
     "github.com/zlyuancn/zstr"
 )
+
+var SyntaxErr = errors.New("语法错误")
 
 type JVE struct {
     path string
@@ -88,40 +89,57 @@ func (m *JVE) Get(path string) *JVE {
     case String:
         return m.makeJve(path, errors.New("String类型没有子路径了"))
     case Array:
+        rawpath := path
+        if path[0] == '[' {
+            if len(path) < 3 || path[len(path)-1] != ']' {
+                return m.makeJve(path, SyntaxErr)
+            }
+            path = path[1 : len(path)-1]
+            rawpath = fmt.Sprintf("[%s]", path)
+        }
+
         if path == "#" {
             count := len(m.raw.([]interface{}))
-            return m.makeJve(path, float64(count))
-        }
-
-        rawpath := paths[0]
-        negative := false
-        if path[0] == '-' {
-            negative = true
-            if len(path) == 1 {
-                return m.makeJve(rawpath, errors.New("Array类型的路径语法错误"))
-            }
-            path = path[1:]
-            if path == "0" {
-                return m.makeJve(rawpath, errors.New("Array类型的路径语法错误"))
-            }
-        }
-
-        i, err := strconv.Atoi(path)
-        if err != nil {
-            return m.makeJve(rawpath, errors.New("Array类型的路径语法错误"))
+            return m.makeJve(rawpath, float64(count))
         }
 
         count := len(m.raw.([]interface{}))
 
-        if negative {
-            if i > count {
-                return m.makeJve(rawpath, fmt.Errorf("索引 -%d 超出最大数量 %d", i, count))
+        vs := strings.Split(path, ",")
+        if len(vs) > 2 {
+            return m.makeJve(rawpath, SyntaxErr)
+        }
+        array := len(vs) == 2
+
+        var start int
+        start, err := strconv.Atoi(vs[0])
+        if err != nil {
+            return m.makeJve(rawpath, SyntaxErr)
+        }
+        if start < 0 {
+            start += count
+        }
+        if start < 0 || start >= count {
+            return m.makeJve(rawpath, fmt.Errorf("索引超出最大数量%d", count))
+        }
+
+        if array {
+            end, err := strconv.Atoi(vs[1])
+            if err != nil {
+                return m.makeJve(rawpath, SyntaxErr)
             }
-            out = m.makeJve(rawpath, m.raw.([]interface{})[count-i])
-        } else if i >= count {
-            return m.makeJve(rawpath, fmt.Errorf("索引 %d 超出最大数量 %d", i, count))
+            if end < 0 {
+                end += count
+            }
+            if end < 0 || end > count {
+                return m.makeJve(rawpath, fmt.Errorf("索引超出最大数量%d", count))
+            }
+            if start > end {
+                return m.makeJve(rawpath, errors.New("切片结果不能为负"))
+            }
+            out = m.makeJve(rawpath, m.raw.([]interface{})[start:end])
         } else {
-            out = m.makeJve(rawpath, m.raw.([]interface{})[i])
+            out = m.makeJve(rawpath, m.raw.([]interface{})[start])
         }
     case Object:
         v, ok := m.raw.(map[string]interface{})[path]
@@ -139,7 +157,13 @@ func (m *JVE) Get(path string) *JVE {
 }
 
 // 获取原始值
+// Deprecated: 建议使用 Raw, 因为很容易将Val理解为获取字符串值
 func (m *JVE) Val() interface{} {
+    return m.raw
+}
+
+// 获取原始值
+func (m *JVE) Raw() interface{} {
     return m.raw
 }
 
@@ -157,6 +181,14 @@ func (m *JVE) Str() (*zstr.String, error) {
         return nil, fmt.Errorf("需要String, 但它是%s", m.t)
     }
     return zstr.New(m.raw.(string)), nil
+}
+
+// 必须转为String值, 否则会panic
+func (m *JVE) MustStr() *zstr.String {
+    if m.t != String {
+        panic(fmt.Errorf("需要String, 但它是%s", m.t))
+    }
+    return zstr.New(m.raw.(string))
 }
 
 // 获取它的Boolean值, 只有Boolean类型有效
@@ -191,27 +223,14 @@ func (m *JVE) Count() (int, error) {
     return len(m.raw.([]interface{})), nil
 }
 
-// 获取它的索引值, 只有Array类型有效
+// 获取数组指定索引的值, 只有Array类型有效
 func (m *JVE) Index(i int) *JVE {
-    path := strconv.Itoa(i)
-    if m.t != Array {
-        return m.makeJve(path, fmt.Errorf("需要Array, 但它是%s", m.t))
-    }
+    return m.Get(strconv.Itoa(i))
+}
 
-    count := len(m.raw.([]interface{}))
-
-    if i < 0 {
-        i = -i
-        if i > count {
-            return m.makeJve(path, fmt.Errorf("索引 -%d 超出最大数量 %d", i, count))
-        }
-        return m.makeJve(path, m.raw.([]interface{})[count-i])
-    }
-
-    if i >= count {
-        return m.makeJve(path, fmt.Errorf("索引 %d 超出最大数量 %d", i, count))
-    }
-    return m.makeJve(path, m.raw.([]interface{})[i])
+// 获取数组的切片, 只有Array类型有效
+func (m *JVE) Slice(start, end int) *JVE {
+    return m.Get(fmt.Sprintf("%d,%d", start, end))
 }
 
 // 判断是否存在某个路径
@@ -283,7 +302,7 @@ func LoadReader(r io.Reader) *JVE {
 
 // 从字符串中加载
 func LoadString(s string) *JVE {
-    return Load(*(*[]byte)(unsafe.Pointer(&s)))
+    return Load([]byte(s))
 }
 
 // 从bytes中加载
