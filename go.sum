@@ -19,3 +19,5 @@ github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/zlyuancn/zstr v0.0.0-20200216100638-29920e095ae2 h1:Zs8exjPJolnXk/jEUHhJbqWr1yae4Cj3iJ2+o+YaE7Y=
 github.com/zlyuancn/zstr v0.0.0-20200216100638-29920e095ae2/go.mod h1:gcWCwemINH4jJeg+sXWMf45IAWc/fSn4rZ38eW2zqI8=
+github.com/zlyuancn/zstr v0.0.0-20201204084650-28f429df8824 h1:bNu/dY4ASh0ehzae1+EuxtbV6ARPx05Ktfn2a1Uf0U8=
+github.com/zlyuancn/zstr v0.0.0-20201204084650-28f429df8824/go.mod h1:gcWCwemINH4jJeg+sXWMf45IAWc/fSn4rZ38eW2zqI8=
